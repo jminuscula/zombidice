@@ -302,6 +302,9 @@ zombidiceApp.controller('ZombidiceCtrl', ['$scope', 'mathService', function($sco
     var idx = $scope.selected.indexOf(weapon);
     if (idx === -1) {
       $scope.selected.push(weapon);
+      $scope.selected.sort(function sortWeapons(a, b) {
+        return a.name > b.name;
+      });
       weapon.selected = true;
     } else {
       $scope.selected.splice(idx, 1);
@@ -377,14 +380,14 @@ zombidiceApp.controller('ZombidiceCtrl', ['$scope', 'mathService', function($sco
   */
   $scope.probableKills = function probableKills(weapon) {
     if (weapon.probableKills === undefined) {
-      var pkills = [];
-      for (var i = 1; i <= weapon.dice; i++) {
-          var prob = getKillProbability(weapon),
-              pnk = mathService.BinomialDistribution(prob, weapon.dice, i);
-              pkill = (pnk * 100).toFixed(2);
+      var pkills = [],
+          prob = getKillProbability(weapon);
+      for (var i = weapon.dice; i > 0; i--) {
+          var pnk = mathService.BinomialDistribution(prob, weapon.dice, i);
+              pkill = (pnk * 100 + (pkills[weapon.dice - i - 1] || 0));
         pkills.push(pkill);
       }
-      weapon.probableKills = pkills;
+      weapon.probableKills = pkills.reverse();
     }
 
     $scope.deadliestWeapon = $scope.getDeadliestWeapon();
